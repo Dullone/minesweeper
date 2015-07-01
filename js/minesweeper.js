@@ -7,18 +7,32 @@ var minesweeper = (function() {
 
   var newGame = function()
   {
-    //game.init();
-    board.init();
-    //boardView.init();
+    game.init();
   };
 
   var game = ( function() {
+    var init = function() {
+      var options = {
+        sizeX: 9,
+        sizeY: 9,
+        mines: 10,
+      }
+      board.init(options);
+      boardView.init(options);
+
+      boardView.createBoard(options.sizeX, options.sizeY);
+      board.createBoard(options.sizeX, options.sizeY);
+    };
+
+    return { //game
+      init: init,
+    }
 
   })();
 
   var board = ( function() {
-    var sizeX;
-    var sizeY;
+    var _sizeX;
+    var _sizeY;
     var _mines;
     var _board_array = [];
 
@@ -28,17 +42,16 @@ var minesweeper = (function() {
 
     var init = function(options) {
       options = options || {};
-      sizeX = options.sizeX  || 9;
-      sizeY = options.sizeY  || 9;
-      _mines = options.mines || 10;
-      createBoard();
+      _sizeX = options.sizeX;
+      _sizeY = options.sizeY;
+      _mines = options.mines;
     };
 
     var createBoard = function() {
       //create empty board
-      for (var i = 0; i < sizeX; i++) {
+      for (var i = 0; i < _sizeX; i++) {
         _board_array [i] = [];
-        for (var j = 0; j < sizeX; j++) {
+        for (var j = 0; j < _sizeY; j++) {
           _board_array[i][j] = _empty;
         }  
       }
@@ -52,8 +65,8 @@ var minesweeper = (function() {
         return false;
       }
       for (var i = 1; i  <= _mines; i++) {
-        var x = Math.floor(Math.random() * sizeX);
-        var y = Math.floor(Math.random() * sizeX);
+        var x = Math.floor(Math.random() * _sizeX);
+        var y = Math.floor(Math.random() * _sizeY);
         
         if(squareEmpty([x,y])) {
           _board_array[x][y] = new Square('mine');
@@ -70,8 +83,8 @@ var minesweeper = (function() {
 
     var emptySquares = function(loc) {
       var empty = 0;
-      for (var i = 0; i < sizeX; i++) {
-        for (var j = 0; j < sizeX; j++) {
+      for (var i = 0; i < _sizeX; i++) {
+        for (var j = 0; j < _sizeY; j++) {
           if(squareEmpty([i,j])) {
             empty++;
           }
@@ -89,18 +102,44 @@ var minesweeper = (function() {
       };
     };
 
-    return {
+    return { //board
       init: init,
+      createBoard: createBoard,
     }
 
   })();
 
   var boardView = ( function() {
+    var $board;
+    var init = function(){
+      $board = $('#board');
+    };
+
+    var createBoard = function(sizeX, sizeY) {
+      $board.empty();
+      html_string = "";
+      for (var i = 0; i < sizeX; i++) {
+        html_string += '<div class="row">';
+
+        for (var j = 0; j < sizeY; j++) {
+          html_string += '<div class="board-square"></div>';
+        };
+
+        html_string += '</div>';
+      }
+
+      $board.append(html_string);
+    };
+
+    return { //boardview
+      init: init,
+      createBoard: createBoard,
+    }
 
   })();
 
-  return{
-    init:init,
+  return { //minesweeper
+    init: init,
   }
 
 })();

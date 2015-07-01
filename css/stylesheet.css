@@ -1,0 +1,36 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+*{
+	padding: 0;
+	margin: 0;
+}
+
+.row{
+	height: 1em;
+}
+
+.board-square{
+	background-color: #eee;
+	height: 1em;
+	width: 1em;
+	border: 1px solid;
+	display: inline-block;
+}
+
+
+.container{
+	width: 90%;
+	margin-right: auto;
+	margin-left: auto;
+	padding: 20px;
+}
+
+#board{
+	width: 50%;
+	margin-right: auto;
+	margin-left: auto;
+}
