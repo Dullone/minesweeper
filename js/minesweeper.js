@@ -10,6 +10,13 @@ var minesweeper = (function() {
     game.init();
   };
 
+
+  //piece types
+  var _empty  = 'empty';
+  var _mine   = 'mine';
+  var _number = 'number';
+  var _flag   = 'flag';
+
   var game = ( function() {
     var init = function() {
       var options = {
@@ -38,7 +45,7 @@ var minesweeper = (function() {
     };
 
     var leftClick = function(eventData) {
-      board.revealSquare(idToRowColumn(eventData.currentTarget.id));
+      board.revealCascade(idToRowColumn(eventData.currentTarget.id));
     };
 
     var rightClick = function(eventData) {
@@ -60,10 +67,11 @@ var minesweeper = (function() {
       return [Number(id.charAt(1)), Number(id.charAt(3))];
     };
 
-    var onReveal = function(eventData) {
-      console.log('onReveal: ' + eventData.square.piece_type)
-      boardView.reveal(rowColumnToId(eventData.location[0], eventData.location[1]), 
-                            eventData.square.piece_type, eventData.square.number);
+    var onReveal = function(square) {
+      console.log('onReveal: ' + square.piece_type)
+      text = square.piece_type === _number ? square.number : '';
+      boardView.reveal(rowColumnToId(square.location[0], square.location[1]), 
+                                           square.piece_type, text);
     };
 
     return { //game
@@ -79,13 +87,6 @@ var minesweeper = (function() {
     var _mines;
     var _board_array = [];
 
-    //piece types
-    var _empty  = 'empty';
-    var _mine   = 'mine';
-    var _number = 'number';
-
-    var _flag   = 'flag';
-
     var _revealListeners = [];
 
     var init = function(options) {
@@ -100,7 +101,7 @@ var minesweeper = (function() {
       for (var i = 0; i < _sizeX; i++) {
         _board_array [i] = [];
         for (var j = 0; j < _sizeY; j++) {
-          _board_array[i][j] = new Square(_empty);
+          _board_array[i][j] = new Square(_empty, [i,j]);
         }  
       }
 
@@ -116,7 +117,7 @@ var minesweeper = (function() {
         var y = Math.floor(Math.random() * _sizeY);
         
         if(squareEmpty([x,y])) {
-          _board_array[x][y] = new Square('mine');
+          _board_array[x][y].piece_type = _mine;
           addPlusOneMineToAdjacent([x,y]);
         } else { //mine wasn't placed, place another
           i--;
@@ -171,24 +172,51 @@ var minesweeper = (function() {
       return empty;
     };
 
-    var Square = function(piece_type) {
+    var Square = function(piece_type, location) {
       this.piece_type = piece_type;
+      this.location = location;
       this.number = 0;
       this.revealed = false;
       this.flagged = false;
+
+      this.reveal = function() {
+        this.revealed = true;
+        onReveal(this);
+      };
     };
 
     var revealSquare = function(loc) {
-      this.revealed = true;
-      onReveal(loc);
+        _board_array[loc[0]][loc[1]].reveal();
     };
 
-    var onReveal = function(loc) {
+    var revealCascade = function(loc) {
+      var square = _board_array[loc[0]][loc[1]];
+
+      //queue for traversal
+      queue = [];
+      queue.push(square);
+
+      while(queue.length > 0) {
+        square = queue.shift();
+        square.reveal();
+
+        if(square.piece_type === _empty) {
+          adjacents = getSurroundingSquares(loc);
+          for(var idx in adjacents) {
+            adjacents[idx].reveal();
+            if(adjacents[idx].piece_type === _empty && !square.revealed) {
+              queue.push(adjacents[idx])
+            }
+          }
+        }
+      }
+
+      return square.piece_type;
+    };
+
+    var onReveal = function(square) {
       for(var id in _revealListeners) {
-        _revealListeners[id]({
-            location: loc,
-            square: _board_array[loc[0]][loc[1]],
-         });
+        _revealListeners[id](square);
       }
     };
 
@@ -224,6 +252,7 @@ var minesweeper = (function() {
       addRevealListener: addRevealListener,
       removeRevealListener: removeRevealListener,
       revealSquare: revealSquare,
+      revealCascade: revealCascade,
     }
 
   })();
