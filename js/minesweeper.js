@@ -19,13 +19,14 @@ var minesweeper = (function() {
   var $flags;
 
   var game = ( function() {
-    var _flags = 10;
+    var _flags;
     var init = function() {
       var options = {
         sizeX: 9,
         sizeY: 9,
         mines: 10,
       }
+      _flags = options.mines;
       board.init(options);
       boardView.init(options);
 
@@ -35,6 +36,7 @@ var minesweeper = (function() {
       board.addRevealListener(onReveal);
 
       $flags = $('#flags');
+      updateFlags();
       $('#messages').empty();
 
       registerClicks();
@@ -101,7 +103,8 @@ var minesweeper = (function() {
 
     var gameOver = function() {
       unregisterClicks();
-      $('#messages').append('<div id="game-over">Game Over!</div>');
+      $('#messages').append('<div id="game-over">BOOOM!<br/>Game Over!</div>');
+      board.revealAll();
     };
 
     var gameWin = function() {
@@ -293,6 +296,14 @@ var minesweeper = (function() {
       return false;
     };
 
+    var revealAll = function() {
+      for (var i = 0; i < _sizeX; i++) {
+        for (var j = 0; j < _sizeY; j++) {
+          _board_array[i][j].reveal();
+        }  
+      }
+    };
+
     return { //board
       init: init,
       createBoard: createBoard,
@@ -302,6 +313,7 @@ var minesweeper = (function() {
       revealSquare: revealSquare,
       revealCascade: revealCascade,
       unrevealedNonMines: unrevealedNonMines,
+      revealAll: revealAll,
     }
 
   })();
