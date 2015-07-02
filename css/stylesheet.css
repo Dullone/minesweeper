@@ -13,14 +13,26 @@ html {
 	height: 1em;
 }
 
-.board-square{
-	background-color: #eee;
+.covered-square, .mine, .number, .empty{
 	height: 1em;
 	width: 1em;
 	border: 1px solid;
 	border-color: #444;
 	border-radius: 2px;
 	display: inline-block;
+}
+.covered-square {
+	background-color: #eee;
+}
+
+.empty{
+	background-color: white;
+}
+.mine{
+	background-color: blue;
+}
+.number{
+	background-color: green;
 }
 
 

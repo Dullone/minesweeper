@@ -23,31 +23,33 @@ var minesweeper = (function() {
       boardView.createBoard(options.sizeX, options.sizeY);
       board.createBoard(options.sizeX, options.sizeY);
 
+      board.addRevealListener(onReveal);
+
       registerClicks();
     };
 
     var registerClicks = function() {
-      console.log(this);
-      $('#board .board-square').click(leftClick.bind(this));
-      $('#board .board-square').mousedown(rightClick.bind(this));
+      $('#board .covered-square').click(leftClick.bind(this));
+      $('#board .covered-square').mousedown(rightClick.bind(this));
       //disable context menu for board
-      $('#board').on('contextmenu', function(event) {
-          event.preventDefault();
+      $('#board').on('contextmenu', function(eventData) {
+          eventData.preventDefault();
         });
     };
 
-    var leftClick = function(event) {
-
+    var leftClick = function(eventData) {
+      board.revealSquare(idToRowColumn(eventData.currentTarget.id));
     };
 
-    var rightClick = function(event) {
-      if(event.which != 3)
+    var rightClick = function(eventData) {
+      if(eventData.which != 3)
       {
         return;
       }
-      var id = event.currentTarget.id;
+      var id = eventData.currentTarget.id;
       board.toggleFlag(idToRowColumn(id));
       boardView.toggleFlag(id);
+
     };
 
     var rowColumnToId = function(x, y) {
@@ -56,6 +58,12 @@ var minesweeper = (function() {
 
     var idToRowColumn = function(id) {
       return [Number(id.charAt(1)), Number(id.charAt(3))];
+    };
+
+    var onReveal = function(eventData) {
+      console.log('onReveal: ' + eventData.square.piece_type)
+      boardView.reveal(rowColumnToId(eventData.location[0], eventData.location[1]), 
+                            eventData.square.piece_type, eventData.square.number);
     };
 
     return { //game
@@ -71,9 +79,14 @@ var minesweeper = (function() {
     var _mines;
     var _board_array = [];
 
-    var _empty = 'empty';
-    var _mine  = 'mine';
-    var _flag  = 'flag';
+    //piece types
+    var _empty  = 'empty';
+    var _mine   = 'mine';
+    var _number = 'number';
+
+    var _flag   = 'flag';
+
+    var _revealListeners = [];
 
     var init = function(options) {
       options = options || {};
@@ -92,7 +105,6 @@ var minesweeper = (function() {
       }
 
       addMines(_mines);
-      console.log(_board_array);
     };
 
     var addMines = function(mines) {
@@ -105,6 +117,7 @@ var minesweeper = (function() {
         
         if(squareEmpty([x,y])) {
           _board_array[x][y] = new Square('mine');
+          addPlusOneMineToAdjacent([x,y]);
         } else { //mine wasn't placed, place another
           i--;
         }
@@ -113,7 +126,37 @@ var minesweeper = (function() {
     };
 
     var squareEmpty =  function(loc) {
-      return (_board_array[loc[0]][loc[1]].piece_type === _empty );
+      return (_board_array[loc[0]][loc[1]].piece_type === _empty || 
+              _board_array[loc[0]][loc[1]].piece_type === _number);
+    };
+
+    var getSurroundingSquares = function(loc) {
+      var squares = [];
+
+      for (var i = loc[0] - 1; i <= loc[0] + 1; i++) {
+        for (var j = loc[1] - 1; j <= loc[1] + 1; j++) {
+          if(_board_array[i]) {//if undefined then outside of array so don't add
+            if(_board_array[i][j] && !(i === loc[0] && j === loc[1]) ) {
+              squares.push(_board_array[i][j]);
+            }
+          }
+        }
+      }
+      console.log('ad squares # ' + squares.length);
+      return squares;
+    };
+
+    var addPlusOneMineToAdjacent = function(loc) {
+      var squares = getSurroundingSquares(loc);
+      console.log(squares);
+      for (var idx in squares) {
+        if(squares[idx].piece_type === _number) {
+          squares[idx].number++;
+        } else if (squares[idx].piece_type !== _mine) {
+          squares[idx].piece_type = _number;
+          squares[idx].number++;
+        }
+      }
     };
 
     var emptySquares = function(loc) {
@@ -130,12 +173,34 @@ var minesweeper = (function() {
 
     var Square = function(piece_type) {
       this.piece_type = piece_type;
+      this.number = 0;
       this.revealed = false;
       this.flagged = false;
+    };
 
-      var reveal = function() {
-        this.revealed = true;
-      };
+    var revealSquare = function(loc) {
+      this.revealed = true;
+      onReveal(loc);
+    };
+
+    var onReveal = function(loc) {
+      for(var id in _revealListeners) {
+        _revealListeners[id]({
+            location: loc,
+            square: _board_array[loc[0]][loc[1]],
+         });
+      }
+    };
+
+    var addRevealListener = function(func) {
+      _revealListeners.push(func);
+    };
+
+    var removeRevealListener = function(func) {
+      var idx = _revealListeners.indexOf(func);
+      if(func) {
+        _revealListeners.splice(idx, 1);
+      }
     };
 
     var toggleFlag = function(loc) {
@@ -156,6 +221,9 @@ var minesweeper = (function() {
       init: init,
       createBoard: createBoard,
       toggleFlag: toggleFlag,
+      addRevealListener: addRevealListener,
+      removeRevealListener: removeRevealListener,
+      revealSquare: revealSquare,
     }
 
   })();
@@ -168,12 +236,12 @@ var minesweeper = (function() {
 
     var createBoard = function(sizeX, sizeY) {
       $board.empty();
-      html_string = "";
+      var html_string = "";
       for (var i = 0; i < sizeX; i++) {
         html_string += '<div class="row">';
 
         for (var j = 0; j < sizeY; j++) {
-          html_string += '<div class="board-square" id=' + 
+          html_string += '<div class="covered-square" id=' + 
                          game.rowColumnToId(i, j) + '></div>';
         };
 
@@ -187,10 +255,21 @@ var minesweeper = (function() {
       $('#' + id).toggleClass('flagged');
     };
 
+    var reveal = function(id, _classType, text) {
+      var $square = $('#' + id);
+      $square.addClass(_classType);
+      console.log(text);
+      if(text){
+        $square.text(text);
+      }
+      $square.removeClass('covered-square');
+    };
+
     return { //boardview
       init: init,
       createBoard: createBoard,
       toggleFlag: toggleFlag,
+      reveal: reveal,
     }
 
   })();
