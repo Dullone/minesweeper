@@ -22,6 +22,7 @@ var minesweeper = (function() {
   var _flag   = 'flag';
   var $flags;
   var elaspedTime;
+  var interval;
   var $timer;
 
   var game = ( function() {
@@ -56,8 +57,13 @@ var minesweeper = (function() {
 
       //timing
       $timer = $('#timer');
+      $timer.empty();
       elaspedTime = 0;
-      setInterval(updateTime, 1000);
+
+      if(interval) {
+        clearInterval(interval);
+      }
+      interval = setInterval(updateTime, 1000);
     };
     var updateTime = function(){
       $timer.text(++elaspedTime);
@@ -124,14 +130,19 @@ var minesweeper = (function() {
     };
 
     var gameOver = function() {
-      unregisterClicks();
+      stopGame();
       $('#messages').append('<div id="game-over">BOOOM!<br/>Game Over!</div>');
       board.revealAll();
     };
 
     var gameWin = function() {
-      unregisterClicks();
+      stopGame();
       $('#messages').append('<div id="game-win">You won!</div>');
+    };
+
+    var stopGame =  function() {
+      unregisterClicks();
+      clearInterval(interval);
     };
 
     return { //game
