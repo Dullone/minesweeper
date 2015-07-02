@@ -54,7 +54,7 @@ html {
 	margin-left: 10px;
 }
 #messages{
-	
+
 }
 #game-over{
 	font-size: 2em;
@@ -76,4 +76,9 @@ html {
 	background-color: #0000aa;
 	border-radius: 10px;
 	padding: 3px 35px;
+}
+
+#instructions{
+	font-size: .875em;
+	font-family: georgia;
 }
