@@ -34,8 +34,9 @@ html {
 .number{
 	background-color: green;
 }
-
-
+.flagged{
+	background: url("../img/flag.png");
+}
 .container{
 	width: 90%;
 	margin-right: auto;
@@ -47,6 +48,32 @@ html {
 #board{
 	float: left;
 }
-.flagged{
-	background: url("../img/flag.png");
+#status{
+	float: left;
+	padding: 10px;
+	margin-left: 10px;
+}
+#messages{
+	
+}
+#game-over{
+	font-size: 2em;
+	color: #aa0000;
+}
+#game-win{
+	font-size: 2em;
+	color: #00aa00;
+}
+
+#reset-button{
+	clear: both;
+	padding: 15px 0;
+}
+#reset{
+	font-size: 1em;
+	color: white;
+	text-decoration: none;
+	background-color: #0000aa;
+	border-radius: 10px;
+	padding: 3px 35px;
 }

@@ -35,6 +35,7 @@ var minesweeper = (function() {
       board.addRevealListener(onReveal);
 
       $flags = $('#flags');
+      $('#messages').empty();
 
       registerClicks();
     };
@@ -55,13 +56,11 @@ var minesweeper = (function() {
 
     var leftClick = function(eventData) {
       var squareType = board.revealCascade(idToRowColumn(eventData.currentTarget.id));
-      console.log('type: ' + squareType + ' == ' + _mine);
       if(squareType === _mine){
         gameOver();
       }
-      console.log(board.unrevealedNonMines());
-      if(board.unrevealedNonMines() > 0){
-
+      if(board.unrevealedNonMines() === 0){
+        gameWin();
       }
     };
 
@@ -102,7 +101,12 @@ var minesweeper = (function() {
 
     var gameOver = function() {
       unregisterClicks();
-      $('#status').append('Game Over!');
+      $('#messages').append('<div id="game-over">Game Over!</div>');
+    };
+
+    var gameWin = function() {
+      unregisterClicks();
+      $('#messages').append('<div id="game-win">You won!</div>');
     };
 
     return { //game
@@ -279,7 +283,6 @@ var minesweeper = (function() {
     //returns false if flag unaviable, otherwise new number of flags
     var toggleFlag = function(loc, flags) {
       var square = _board_array[loc[0]][loc[1]];
-      console.log('flags(toggle): ' + flags);
       if(!square.flagged && flags > 0) {
         square.flagged = true;
         return --flags;
