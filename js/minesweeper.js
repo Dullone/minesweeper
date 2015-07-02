@@ -48,9 +48,19 @@ var minesweeper = (function() {
         });
     };
 
+    var unregisterClicks =  function() {
+      $('#board .covered-square').unbind('click');
+      $('#board .covered-square').unbind('mousedown');
+    };
+
     var leftClick = function(eventData) {
-      board.revealCascade(idToRowColumn(eventData.currentTarget.id));
-      if(board.nonMineSquares > 0){
+      var squareType = board.revealCascade(idToRowColumn(eventData.currentTarget.id));
+      console.log('type: ' + squareType + ' == ' + _mine);
+      if(squareType === _mine){
+        gameOver();
+      }
+      console.log(board.unrevealedNonMines());
+      if(board.unrevealedNonMines() > 0){
 
       }
     };
@@ -88,6 +98,11 @@ var minesweeper = (function() {
       text = square.piece_type === _number ? square.number : '';
       boardView.reveal(rowColumnToId(square.location[0], square.location[1]), 
                                            square.piece_type, text);
+    };
+
+    var gameOver = function() {
+      unregisterClicks();
+      $('#status').append('Game Over!');
     };
 
     return { //game
@@ -147,8 +162,16 @@ var minesweeper = (function() {
               _board_array[loc[0]][loc[1]].piece_type === _number);
     };
 
-    var nonMineSquares = function() {
-      return emptySquares().length;
+    var unrevealedNonMines = function() {
+      unrevealed = _sizeY * _sizeX - _mines;
+      for (var i = 0; i < _sizeX; i++) {
+        for (var j = 0; j < _sizeY; j++) {
+          if(_board_array[i][j].revealed && _board_array[i][j] !== _mine) {
+            unrevealed--;
+          }
+        }  
+      }
+      return unrevealed;
     };
 
     var getSurroundingSquares = function(loc) {
@@ -275,7 +298,7 @@ var minesweeper = (function() {
       removeRevealListener: removeRevealListener,
       revealSquare: revealSquare,
       revealCascade: revealCascade,
-      nonMineSquares: nonMineSquares,
+      unrevealedNonMines: unrevealedNonMines,
     }
 
   })();
