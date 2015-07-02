@@ -13,7 +13,7 @@ html {
 	height: 1em;
 }
 
-.covered-square, .mine, .number, .empty{
+.covered-square, .mine, .number, .empty, .flagged{
 	height: 1em;
 	width: 1em;
 	border: 1px solid;
