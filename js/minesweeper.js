@@ -16,8 +16,10 @@ var minesweeper = (function() {
   var _mine   = 'mine';
   var _number = 'number';
   var _flag   = 'flag';
+  var $flags;
 
   var game = ( function() {
+    var _flags = 10;
     var init = function() {
       var options = {
         sizeX: 9,
@@ -31,6 +33,8 @@ var minesweeper = (function() {
       board.createBoard(options.sizeX, options.sizeY);
 
       board.addRevealListener(onReveal);
+
+      $flags = $('#flags');
 
       registerClicks();
     };
@@ -46,6 +50,9 @@ var minesweeper = (function() {
 
     var leftClick = function(eventData) {
       board.revealCascade(idToRowColumn(eventData.currentTarget.id));
+      if(board.nonMineSquares > 0){
+
+      }
     };
 
     var rightClick = function(eventData) {
@@ -54,9 +61,19 @@ var minesweeper = (function() {
         return;
       }
       var id = eventData.currentTarget.id;
-      board.toggleFlag(idToRowColumn(id));
-      boardView.toggleFlag(id);
+      //returns false if flag unaviable, otherwise new number of flags
+      flagged = board.toggleFlag(idToRowColumn(id), _flags);
+      if(flagged !== false){
+        boardView.toggleFlag(id);
+        _flags = flagged;
+      }
 
+      updateFlags();
+
+    };
+
+    var updateFlags = function() {
+      $flags.text(_flags);
     };
 
     var rowColumnToId = function(x, y) {
@@ -130,6 +147,10 @@ var minesweeper = (function() {
               _board_array[loc[0]][loc[1]].piece_type === _number);
     };
 
+    var nonMineSquares = function() {
+      return emptySquares().length;
+    };
+
     var getSurroundingSquares = function(loc) {
       var squares = [];
 
@@ -189,7 +210,7 @@ var minesweeper = (function() {
     var revealCascade = function(loc) {
       var square = _board_array[loc[0]][loc[1]];
 
-      if(square.revealed === true){
+      if(square.revealed || square.flagged){
         return;
       }
 
@@ -232,17 +253,18 @@ var minesweeper = (function() {
       }
     };
 
-    var toggleFlag = function(loc) {
+    //returns false if flag unaviable, otherwise new number of flags
+    var toggleFlag = function(loc, flags) {
       var square = _board_array[loc[0]][loc[1]];
-      if(square.flagged === _empty) {
+      console.log('flags(toggle): ' + flags);
+      if(!square.flagged && flags > 0) {
         square.flagged = true;
-        return true;
-      } else 
-      {
+        return --flags;
+      } else if (square.flagged){
         square.flagged = false;
-        return false;
+        return ++flags;
       }
-
+      return false;
     };
 
     return { //board
@@ -253,6 +275,7 @@ var minesweeper = (function() {
       removeRevealListener: removeRevealListener,
       revealSquare: revealSquare,
       revealCascade: revealCascade,
+      nonMineSquares: nonMineSquares,
     }
 
   })();

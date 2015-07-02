@@ -41,13 +41,12 @@ html {
 	margin-right: auto;
 	margin-left: auto;
 	padding: 20px;
+	overflow: auto;
 }
 
 #board{
-	width: 50%;
-	margin-right: auto;
-	margin-left: auto;
+	float: left;
 }
 .flagged{
-	background-color: #aa0000;
+	background: url("../img/flag.png");
 }
