@@ -68,7 +68,6 @@ var minesweeper = (function() {
     };
 
     var onReveal = function(square) {
-      console.log('onReveal: ' + square.piece_type)
       text = square.piece_type === _number ? square.number : '';
       boardView.reveal(rowColumnToId(square.location[0], square.location[1]), 
                                            square.piece_type, text);
@@ -143,13 +142,11 @@ var minesweeper = (function() {
           }
         }
       }
-      console.log('ad squares # ' + squares.length);
       return squares;
     };
 
     var addPlusOneMineToAdjacent = function(loc) {
       var squares = getSurroundingSquares(loc);
-      console.log(squares);
       for (var idx in squares) {
         if(squares[idx].piece_type === _number) {
           squares[idx].number++;
@@ -192,6 +189,10 @@ var minesweeper = (function() {
     var revealCascade = function(loc) {
       var square = _board_array[loc[0]][loc[1]];
 
+      if(square.revealed === true){
+        return;
+      }
+
       //queue for traversal
       queue = [];
       queue.push(square);
@@ -201,12 +202,12 @@ var minesweeper = (function() {
         square.reveal();
 
         if(square.piece_type === _empty) {
-          adjacents = getSurroundingSquares(loc);
+          adjacents = getSurroundingSquares(square.location);
           for(var idx in adjacents) {
-            adjacents[idx].reveal();
-            if(adjacents[idx].piece_type === _empty && !square.revealed) {
+            if(adjacents[idx].piece_type === _empty && !adjacents[idx].revealed) {
               queue.push(adjacents[idx])
             }
+            adjacents[idx].reveal();
           }
         }
       }
@@ -232,7 +233,6 @@ var minesweeper = (function() {
     };
 
     var toggleFlag = function(loc) {
-      console.log(loc);
       var square = _board_array[loc[0]][loc[1]];
       if(square.flagged === _empty) {
         square.flagged = true;
@@ -287,7 +287,6 @@ var minesweeper = (function() {
     var reveal = function(id, _classType, text) {
       var $square = $('#' + id);
       $square.addClass(_classType);
-      console.log(text);
       if(text){
         $square.text(text);
       }
