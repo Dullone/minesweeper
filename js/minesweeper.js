@@ -1,13 +1,17 @@
 var minesweeper = (function() {
   init = function() {
-    newGame();
+    game.init();
 
-    $('#reset').click(newGame);
+    $('#reset').click(newGamePromp);
   };
 
-  var newGame = function()
+  var newGamePromp = function()
   {
-    game.init();
+    var size = prompt("Desired board size? (min: 3, max: 40 )", 9);
+    if (size === null){
+      return;
+    }
+    game.init({size: Number(size)})
   };
 
 
@@ -17,15 +21,24 @@ var minesweeper = (function() {
   var _number = 'number';
   var _flag   = 'flag';
   var $flags;
+  var elaspedTime;
+  var $timer;
 
   var game = ( function() {
     var _flags;
-    var init = function() {
+    var init = function(option) {
       var options = {
         sizeX: 9,
         sizeY: 9,
         mines: 10,
       }
+      if(option){
+        if(option.size && option.size < 40 && option.size > 2) {
+          options.sizeX = options.sizeY = option.size;
+          options.mines = Math.floor(option.size * option.size / 10) + 2;
+        }
+      };
+
       _flags = options.mines;
       board.init(options);
       boardView.init(options);
@@ -40,6 +53,14 @@ var minesweeper = (function() {
       $('#messages').empty();
 
       registerClicks();
+
+      //timing
+      $timer = $('#timer');
+      elaspedTime = 0;
+      setInterval(updateTime, 1000);
+    };
+    var updateTime = function(){
+      $timer.text(++elaspedTime);
     };
 
     var registerClicks = function() {
@@ -92,7 +113,8 @@ var minesweeper = (function() {
     };
 
     var idToRowColumn = function(id) {
-      return [Number(id.charAt(1)), Number(id.charAt(3))];
+      var rowCol = id. match(/r(\d+)c(\d+)/);
+      return [rowCol[1], rowCol[2]];
     };
 
     var onReveal = function(square) {
@@ -123,7 +145,7 @@ var minesweeper = (function() {
     var _sizeX;
     var _sizeY;
     var _mines;
-    var _board_array = [];
+    var _board_array;
 
     var _revealListeners = [];
 
@@ -132,6 +154,7 @@ var minesweeper = (function() {
       _sizeX = options.sizeX;
       _sizeY = options.sizeY;
       _mines = options.mines;
+      _board_array = [];
     };
 
     var createBoard = function() {
@@ -170,7 +193,7 @@ var minesweeper = (function() {
     };
 
     var unrevealedNonMines = function() {
-      unrevealed = _sizeY * _sizeX - _mines;
+      var unrevealed = _sizeY * _sizeX - _mines;
       for (var i = 0; i < _sizeX; i++) {
         for (var j = 0; j < _sizeY; j++) {
           if(_board_array[i][j].revealed && _board_array[i][j] !== _mine) {
