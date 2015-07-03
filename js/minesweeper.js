@@ -11,6 +11,7 @@ var minesweeper = (function() {
     if (size === null){
       return;
     }
+    game.stopGame();
     game.init({size: Number(size)})
   };
 
@@ -100,7 +101,7 @@ var minesweeper = (function() {
       }
       var id = eventData.currentTarget.id;
       //returns false if flag unaviable, otherwise new number of flags
-      flagged = board.toggleFlag(idToRowColumn(id), _flags);
+      var flagged = board.toggleFlag(idToRowColumn(id), _flags);
       if(flagged !== false){
         boardView.toggleFlag(id);
         _flags = flagged;
@@ -124,7 +125,7 @@ var minesweeper = (function() {
     };
 
     var onReveal = function(square) {
-      text = square.piece_type === _number ? square.number : '';
+      var text = square.piece_type === _number ? square.number : '';
       boardView.reveal(rowColumnToId(square.location[0], square.location[1]), 
                                            square.piece_type, text);
     };
@@ -148,6 +149,7 @@ var minesweeper = (function() {
     return { //game
       init: init,
       rowColumnToId: rowColumnToId,
+      stopGame: stopGame,
     }
 
   })();
@@ -158,7 +160,7 @@ var minesweeper = (function() {
     var _mines;
     var _board_array;
 
-    var _revealListeners = [];
+    var _revealListeners;
 
     var init = function(options) {
       options = options || {};
@@ -166,6 +168,7 @@ var minesweeper = (function() {
       _sizeY = options.sizeY;
       _mines = options.mines;
       _board_array = [];
+      _revealListeners = [];
     };
 
     var createBoard = function() {
@@ -279,7 +282,7 @@ var minesweeper = (function() {
       }
 
       //queue for traversal
-      queue = [];
+      var queue = [];
       queue.push(square);
 
       while(queue.length > 0) {
